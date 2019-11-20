@@ -1,17 +1,14 @@
-import { h as defaultReviver, Component } from 'preact';
+import { createElement as defaultReviver, Component, PureComponent } from 'react';
 import markupToVdom from './markup-to-vdom';
 
 let customReviver;
 
-export default class Markup extends Component {
+export default class Markup extends PureComponent {
 	static setReviver(h) {
 		customReviver = h;
 	}
 
-	shouldComponentUpdate({ wrap, type, markup }) {
-		let p = this.props;
-		return wrap!==p.wrap || type!==p.type || markup!==p.markup;
-	}
+	
 
 	setComponents(components) {
 		this.map = {};
@@ -24,9 +21,12 @@ export default class Markup extends Component {
 				}
 			}
 		}
+
 	}
 
-	render({ wrap=true, type, markup, components, reviver, onError, 'allow-scripts':allowScripts, 'allow-events':allowEvents, trim, ...props }) {
+	render() {
+
+		const { wrap = true, type, markup, components, reviver, onError, 'allow-scripts': allowScripts, 'allow-events': allowEvents, trim, ...props } = this.props
 		let h = reviver || this.reviver || this.constructor.prototype.reviver || customReviver || defaultReviver,
 			vdom;
 
@@ -44,20 +44,20 @@ export default class Markup extends Component {
 			if (onError) {
 				onError({ error });
 			}
-			else if (typeof console!=='undefined' && console.error) {
+			else if (typeof console !== 'undefined' && console.error) {
 				console.error(`preact-markup: ${error}`);
 			}
 		}
 
-		if (wrap===false) return vdom && vdom[0] || null;
+		if (wrap === false) return vdom && vdom[0] || null;
 
 		// eslint-disable-next-line no-prototype-builtins
 		let c = props.hasOwnProperty('className') ? 'className' : 'class',
 			cl = props[c];
 		if (!cl) props[c] = 'markup';
 		else if (cl.splice) cl.splice(0, 0, 'markup');
-		else if (typeof cl==='string') props[c] += ' markup';
-		else if (typeof cl==='object') cl.markup = true;
+		else if (typeof cl === 'string') props[c] += ' markup';
+		else if (typeof cl === 'object') cl.markup = true;
 
 		return h('div', props, vdom || null);
 	}
